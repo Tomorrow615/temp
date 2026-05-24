@@ -1,0 +1,200 @@
+~./squa  /AppRun
+
+
+
+
+一 任务目标
+本体旨在训练并优化一款双臂视觉逆动力学模型。给定相邻两帧纯视觉观测图像，模型需端到端地估计出驱动状态转移的动作向量。设定动作空间为六维，表征左右机械臂末端执行器在三维笛卡尔坐标系中的空间平移量。为简化动作建模，本次不包含机械臂旋转及夹爪开合状态预测。
+
+二 训练和测试数据
+本题采用基于RoboTwin平台生成的高质量具身数据集进行模型的训练与评估。数据及共覆盖50种复杂操作任务，设计单臂与双臂的协同控制。数据的输入为分辨率320×240的连续图像对，输出的动作特征维度统一为6。在评估设定上，数据集已按标准划分为train val test三个子集。其中，训练集与验证集均提供匹配的动作标签供有监督学习使用，而测试机的标签已被隐去，仅用于测试模型的泛化与推理能力。
+
+三 任务步骤
+1 完善model.py 实现视觉逆动力学模型的结构定义。
+2 执行模型训练 在训练集上完成迭代，实现动作信息的有效估计
+3 探索调优 通过优化网络架构／调整参数及重构损失函数，全面提升预测精度。
+
+四 评估指标
+本体使用test子集中真值action与估计的action的L1 loss 作为评估指标。
+
+
+本题需要提交以下内容到/vepfs/problem1/目录下：
+1 将全部的代码放在文件夹VIDM中，提交至/vepfs/problem1/目录下，即所有代码提交至/vepfs/problem/VIDM下。
+2 将生成的test.csv放在/vepfs/problem1/VIDM/result/下。
+
+
+
+
+一 背景
+ZGCA2024是一个基于经典2048游戏规则扩展的小游戏模拟器。游戏在一个N×N的网络棋盘上进行，每一步中，玩家选择一个方向（上下左右），所有的方块沿该方向滑动并合并。相邻且相等的方块合并一次，合并链为1－2－4－...－1024－Z－G-C-A。其中特殊学院方块对应的数值为Z = 2048 G=4096 C=8192 A=16384。A为最大方块，不可再合并。
+每次有效移动即棋盘发生变化后，模拟器会在随机空位上生成新方块。该策略随棋盘最大方块值的增长而逐步提升新生成方块的数值范围，使得考生在正常运行过程中能够合成到ZGCA等高阶方块。
+游戏结束情况为以下任一情况：达到最大步数，棋盘已满且无合法操作，或智能体发生崩溃，超时，非法动作。最终得分为游戏结束时棋盘上所有方块数值之和。
+
+二 任务目标
+需要设计并实现一个智能体（agent），在给定的游戏模拟器上尽可能获得高分。考生需编辑studnt_agent.py文件，实现StudentAgent类中的choose_action(state)方法。该方法每步被调用一次，接收当前游戏状态快照state，返回一个动作字符串（up down left right），模拟器和代码库的其他具体细节可参阅代码库中的详细说明。
+可以自由选择策略，包括但不限于：启发式搜索，蒙特卡罗树搜索（MCTS)，强化学习等方法。
+
+三 文件说明
+1 zgca1024/ 模拟器包，包含游戏引擎，运行器等等，不得修改此目录下任何文件。
+2 studnt_agent.py 智能体入口文件。默认继承BaseAgent，我们需要替换为自己的策略实现。
+3 exam_runner.py：考试评测运行脚本
+4 tools/viewer.html 离线回放查看器
+5 docs/STUDENT_GUIDE.md 指南，详细说明了接口使用方法，状态字段含义等等
+
+四 运行方式
+1 默认设置运行 （8×8 max1000步）
+python3 -m zgca1024 --seed 1 --max-steps 1000
+2 小棋盘调试运行 （4×4 max50步）
+python3 -m zgca1024 --size 4 --seed 1 --max-steps 50
+3 录制回放文件
+python3 -m zgca1024 --seed 1 --max-step 1000 --trace-out runs/seed1.json
+
+五 评价指标
+棋盘总分，即游戏结束时棋盘上所有方块数值之和。分数越高，表明智能体策略越优。。
+
+六 最终提交
+最终评测环境不允许访问网络，请确保所有依赖文件均为本地文件。模拟器代码和评测脚本在评测时保持不变，请勿依赖对模拟器和评测方法的任何修改。
+提交完整的文件夹，至少包含以下文件：
+1 studnt_agent.py， 并保证能够被exam_runner.py直接加载和运行。
+2 以下三种设置下的最优路径文件
+a --size 4 --max-step 50，命名为runs/best_run_s4_m50.json
+b --size 8 --max-step 1000，命名为runs/best_run_s8_m1000.json
+c --size 10 --max-step 1000，命名为runs/best_run_s10_m1000.json
+3 复现以上结果以及使用其他设置对方法进行额外评测所需使用的所有辅助文件，如helper模块，查找表，模型checkpoint等，统一放在新建文件夹utils／目录下。
+4 README.md 阐述策略设计思路及实现细节
+
+
+
+
+基于Qwen2.5-1.5B 实现NatureLM Stage A 单卡训练pipeline
+
+ 一 背景
+NatureLM是一个面向科学发现的序列基础模型。
+不同科学对象被转换为统一的文本序列格式。
+论文里面采用了两阶段继续预训练策略：第一阶段只训练新增token相关参数，冻结已有模型参数；第二阶段再联合训练整个网络。
+本题要求实现其中Stage A训练的pipeline。本题中，Stage A指NatureLM continued pre－training的第一阶段：扩展tokenizer与embedding后，冻结原始LLM主体参数，只训练新增科学token的embedding/lm head相关参数，使新增科学token逐步使配原有语言模型的表示空间。为简化本题实现，本题仅覆盖小分子，蛋白质，DNA，RNA和自然语言五类数据，不涉及材料数据处理。
+
+二 任务目标
+需要在单张GPU上完成一个可运行的Stage A fine-tuning pipeline.你的代码需要做到：
+1 读取raw JSONL 数据；
+2 根据样本的type字段，将raw sequence转换为对应模态的模型输入文本；
+3 使用Qwen2.5-1.5B 原始tokenizer对输入文本进行分词与编码；
+4 扩展 tokenizer，加入NatureLM风格科学tokens；
+5 Resize Qwen2.5-1.5B 的 token embedding/lm head，使其与扩展后的tokenizer词表大小一致；
+6 冻结原始模型参数；
+7 只训练新增scientific special tokens对应的embedding/lm head参数；
+8 保存tokenizer 模型checkpoint和训练log
+9 输出标准化JSONL log，方便自动批改。
+
+三 数据描述
+我们提供raw data文件：data/data.jsonl，每一行是一个JSON object，格式如下：
+｛"type":"mol","sequence":"CCCC(=O)clccccc1"}
+｛"type":"protein","sequence":"MKTFFVLLLCTFTVV"}
+｛"type":"dna","sequence":"ATGCGTACCGTA"}
+｛"type":"rna","sequence":"AUGCGUACCGUA"}
+｛"type":"text","sequence":"Proteins fold into three-dimensional structures."}
+你需要自己完成所有preprocessing。此外，我们提供科学序列词表文件data/science_tokens.txt，其中包含小分子，蛋白质，DNA和RNA四类科学模态的token。你需要读取该文件，并将其中的tokens加入Qwen2.5-1.5B tokenizer.
+
+四 数据预处理要求
+你需要根据type字段将raw sequence 转换为模型输入文本。
+type      输入sequence     转换后文本
+mol      CCOC（=O）c1ccccc1      <mol><m>C<m>C<m>O<m>C<m>(<m>=<m>O<m>) <m>c<m>1<m>c<m>c<m>c<m>c<m>c<m>1</mol>
+protein      MKTFFVLLLCTFTVV      ......
+dna      ATGCGTACCGTA      ......
+rna      AUGCGUACCGUA      ......
+text      原始文本      原始文本，不加special token
+必须加入的wrapper special tokens：
+SPECIAL_TOKENS = [
+"<mol>", "</mol>",
+"<protein>", "</protein>",
+"<dna>", "</dna>",
+"<rna>", "</rna>",
+]
+此外，读取data/science_tokens.txt，并将其中所有科学模态tokens作为新增tokens加入tokenizer。
+
+五 模型权重描述
+预训练模型权重，配置文件以及原始tokenizer相关文件均存放于Qwen2.5-1.5B/目录下。
+
+六 参考评价标准
+满足以下条件即为通过：
+1 代码能在单张GPU上运行；
+2 能够从raw JSONL数据完成预处理并启动训练；
+3 使用Qwen2.5-1.5B 不使用其他base model；
+4 tokenizer成功加入8个 wrapper special tokens，并成功加入data/science_tokens.txt中所有的scientific vocabulary tokens；
+5 新增tokens能被tokenizer识别为单个完整token；
+6 模型的token embedding/lm head已根据扩展后的tokenizer词表大小正确resize；
+7 训练过程中loss正常输出；
+8 原始模型backbone冻结；
+9 仅在新增的token embedding和lm head上存在梯度；
+10 最终checkpoint和tokenizer可以重新加载
+11 train_log.jsonl格式正确，可用于自动批改。
+
+七 提交内容
+单开一个文件夹(在problem4里面新建一个submit文件夹存东西），里面放入
+train_stage_a.py
+README.md
+outputs/文件夹里面放stage_a/文件夹，然后里面放train_log.jsonl，tokenizer文件夹，checkpoint－50文件夹（如果训练步数或save_every不同，可为对应checkpoint目录），final文件夹。
+data文件夹里面放入train.jsonl（可选：如代码依赖本地数据路径，请一并提交或在README中说明路径）
+
+其中必须包含：
+1 train_stage_a.py 主训练脚本，能够从raw JSONL数据开始完成数据预处理，tokenizer扩展，模型加载，embedding resize，参数冻结，stage A训练，checkpoint保存和log输出。脚本应提供合理的默认参数，在不额外传入命令行参数的情况下可直接运行并完成训练。
+2 README.md 说明如何运行代码，包括使用的Qwen2.5-1.5B checkpoint路径，训练数据路径，运行命令，主要超参数，参数冻结方式，gradient check方法，以及如何重新加载最终模型。
+3 outputs/stage_a/train_log.jsonl：标准化JSONLx训练日志，必须包含init，data_example，train_step，grad_check，save，final_save和done等事件，供自动批改使用。
+4 outputs/stage_a/final/ 最终保存的模型和tokenizer，必须能够重新加载
+5 outputs/stage_a/tokenizer/: 单独保存的扩展后的tokenizer，需包含新增scientific special tokens。
+
+
+
+
+
+基于稀疏采样矩阵乘法的图注意力算子实现与优化
+
+一 背景
+普通注意力机制默认会让每个节点和所有其他节点都计算关系，因此计算量和显存开销通常随节点数平方增长。
+本问题将针对拓扑图上的注意力机制进行实现和性能优化的探索。
+对于一个包含N个节点和E条边的图，一般不用N×N邻接矩阵，通常使用CSR（压缩稀疏行）来表示图结构。
+CSR主要由rowptr和col俩数组组成。
+典型的稀疏图注意力计算过程可拆分为三步骤：
+1 稀疏采样矩阵乘法
+2 边上的softmax归一化
+3 稀疏聚合
+本题设置了两种典型的加速路线：一种是使用torch.compile对pytorch代码进行自动编译优化；另一种是使用Triton编写更贴近GPU执行方式的自定义kernel。
+
+二 任务步骤
+1 在脚本graph_attention/reference.py中提供了基于torch的Graph Attention的实现，在函数graph_attention_torch中。该实现将作为正确性基准，用于后续Triton kernel的结果对齐。该实现根据输入的rowptr，col,Q,K,V ，完成SDDMM，edge softmax 和 spmm三个步骤，并输出节点表示O。请仔细检查该实现中存在的问题，并进行修正，同时考虑潜在的各种测试情况，进行完善。并验证以下命令能成功运行并输出SUCCESS：
+python benchmark.py --basic-torch-implementation
+请将发现的问题，修正思路与完善思路记录在report1.md文件中。
+2 在脚本graph_attention/compile_baseline.py中，实现了使用torch.compile对步骤一中的PYTORCH编写的graph_attention_torch进行编译优化，以及benchmark代码。请运行该脚本，比较直接使用pytorch实现与torch.compile后的运行时间和显存占用。同时，请优化graph_attention/reference.py中graph_attention_torch的实现，以提高其运行效率（包括编译前和编译后的效率）。在报告中说明torch.compile对该类稀疏不规则计算的优化效果和局限性，以及你的优化思路，记录在report2.md文件中。
+3 在脚本graph_attention/triton_kernal.py中完成Triton版本的Graph Attention实现的前向计算过程（在_graph_attention_fwd_kernal函数中）。该实现需要尽可能避免显式物化性状为[E, H, D]（其中H为注意力头的数量）的中间张量（包括注意力机制中的S和A），并在CSR图结构上完成按目标节点分组的注意力计算。实现中应至少支持float32与float16输入，并支持常见的head dimension，包括16 32 64。在文件report3.md中记录下你的实现思路。
+4 使用脚本benchmark.py（直接运行python benchmark.py）完成系统性的性能测试。该脚本在不同节点数，边数，平均度，最大度，head数量，head dimension和数据类型下比较pytorch实现，使用torch.compile以及Triton kernal的性能，同时将检验实现的正确性。性能测试将报告平均运行时间，峰值显存占用和相对加速比，并将结果存储在benchmark_result.csv中。请使用该脚本进行测试，并分析在不同图稀疏度和度分布下性能变化的原因，将你的思考和分析结果存在文件report4.md中。
+
+三 文件说明
+graph_attention/reference.py 需要修正并完善核心函数graph_attention_torch
+graph_attention/compile_baseline.py 保持该文件不变
+graph_attention/triton_kernal.py 需要完成Triton kernal本体_graph_attention_fwd_kernal
+graph_attention/graph_attention.py  保持该文件不变
+benchmark.py 最终评分会使用隐藏测试样例与测试脚本
+data/ 运行benchmark脚本时，确保参数--data－dir指向该data文件夹的路径
+
+四 测试说明
+1 本题需提交完整代码与报告文件。请勿修改公开测试脚本benchmark.py和函数接口，保证benchmark.py能直接运行并输出结果。
+2 最终评分时将根据实现的正确性，报告文件内容以及pytorch实现，使用torch.compile以及Triton kernal三种不同情况的性能进行评分。
+
+
+五 提交内容
+1 将全部代码和报告文件放在文件夹GraphAttention/中，提交至/vepfs/problem2/目录下，即所有代码和报告文件提交至/vepfs/problem2/GraphAttention/下
+2 /vepfs/problem2/GraphAttention/包含以下九个文件
+graph_attention/reference.py 
+graph_attention/compile_baseline.py
+graph_attention/triton_kernal.py 
+graph_attention/graph_attention.py
+benchmark.py
+report1.md
+report2.md
+report3.md
+report4.md
+
+
+
+
+
